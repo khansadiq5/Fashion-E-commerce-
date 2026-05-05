@@ -277,22 +277,51 @@
                             <h2 class="text-2xl font-light">Order Progress</h2>
                         </div>
 
-                        <form action="{{ url('admin/orders/status/'.$order->id) }}" method="post">
+                        <form action="{{ url('admin/orders/status/'.$order->id) }}" method="post" class="space-y-4">
                             @csrf
                             @method('PUT')
 
-                            <label class="block text-sm text-gray-500 mb-2">Order Status</label>
+                            <div>
+                                <label class="block text-xs uppercase tracking-[0.2em] text-gray-500 mb-2">
+                                    Order Status
+                                </label>
 
-                            <select name="order_status" class="w-full border border-gray-200 rounded-xl px-4 py-3 bg-white outline-none focus:border-black transition">
-                                <option value="pending" {{ $order->order_status == 'pending' ? 'selected' : '' }}>Pending</option>
-                                <option value="confirmed" {{ $order->order_status == 'confirmed' ? 'selected' : '' }}>Confirmed</option>
-                                <option value="shipped" {{ $order->order_status == 'shipped' ? 'selected' : '' }}>Shipped</option>
-                                <option value="delivered" {{ $order->order_status == 'delivered' ? 'selected' : '' }}>Delivered</option>
-                                <option value="cancelled" {{ $order->order_status == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
-                            </select>
+                                <select 
+                                    name="order_status" 
+                                    class="w-full border border-gray-200 rounded-xl px-4 py-3 bg-white outline-none focus:border-black transition"
+                                    required
+                                >
+                                    <option value="pending" {{ $order->order_status == 'pending' ? 'selected' : '' }}>
+                                        Pending
+                                    </option>
 
-                            <button class="mt-4 w-full bg-black text-white rounded-xl px-5 py-3 text-sm hover:bg-gray-900 transition">
-                                <i class="fa-solid fa-arrows-rotate mr-2"></i>
+                                    <option value="confirmed" {{ $order->order_status == 'confirmed' ? 'selected' : '' }}>
+                                        Confirmed
+                                    </option>
+
+                                    <option value="shipped" {{ $order->order_status == 'shipped' ? 'selected' : '' }}>
+                                        Shipped
+                                    </option>
+
+                                    <option value="delivered" {{ $order->order_status == 'delivered' ? 'selected' : '' }}>
+                                        Delivered
+                                    </option>
+
+                                    <option value="cancelled" {{ $order->order_status == 'cancelled' ? 'selected' : '' }}>
+                                        Cancelled
+                                    </option>
+                                </select>
+
+                                @error('order_status')
+                                    <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <button 
+                                type="submit"
+                                class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-black px-5 py-3 text-sm font-semibold text-white hover:bg-gray-900 transition"
+                            >
+                                <i class="fa-solid fa-rotate"></i>
                                 Update Status
                             </button>
                         </form>

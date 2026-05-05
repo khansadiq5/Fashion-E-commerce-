@@ -1,3 +1,34 @@
+@php
+    $statuses = [
+        'pending' => [
+            'label' => 'Pending',
+            'title' => 'Order Placed',
+            'desc' => 'Your order has been received successfully.',
+        ],
+        'confirmed' => [
+            'label' => 'Confirmed',
+            'title' => 'Order Confirmed',
+            'desc' => 'Your order has been confirmed by our team.',
+        ],
+        'shipped' => [
+            'label' => 'Shipped',
+            'title' => 'Order Shipped',
+            'desc' => 'Your order is packed and on the way.',
+        ],
+        'delivered' => [
+            'label' => 'Delivered',
+            'title' => 'Delivered',
+            'desc' => 'Your order has been delivered successfully.',
+        ],
+    ];
+
+    $statusKeys = array_keys($statuses);
+    $currentIndex = array_search($order->order_status, $statusKeys);
+
+    if ($currentIndex === false) {
+        $currentIndex = 0;
+    }
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,113 +38,813 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="min-h-screen bg-[#f6f1ea] text-[#160c05]">
+<body class="min-h-screen bg-[#f6f1ea] text-[#160c05] overflow-x-hidden">
 
-<section class="px-4 sm:px-6 lg:px-14 py-10">
+<!-- NAVBAR -->
+<nav class="relative z-40 w-full px-4 sm:px-6 lg:px-14 py-5">
+    <div class="flex items-center justify-between">
 
-    <div class="mb-8">
-        <a href="{{ url('my-orders') }}" class="text-sm text-[#8b7462] hover:text-[#1b0d03]">
-            ← Back to Orders
+        <a href="{{ url('/') }}" class="inline-flex items-center">
+            <h2 class="text-[#1b0d03] text-xl sm:text-2xl tracking-[0.35em] uppercase font-medium">
+                Viora
+            </h2>
         </a>
 
-        <p class="text-xs uppercase tracking-[0.35em] text-[#8b7462] mt-6 mb-3">
-            Order Details
-        </p>
+        <div class="hidden lg:flex items-center gap-8 text-sm font-medium bg-white/45 backdrop-blur-md border border-white/60 px-5 py-3 rounded-full">
+            <a href="{{ url('/') }}" class="hover:text-[#7a4d2a] transition">Home</a>
+            <a href="{{ url('collection') }}" class="hover:text-[#7a4d2a] transition">Collection</a>
+            <a href="{{ url('about') }}" class="hover:text-[#7a4d2a] transition">About Us</a>
+            <a href="{{ url('contact') }}" class="hover:text-[#7a4d2a] transition">Contact Us</a>
+        </div>
 
-        <h1 class="text-4xl sm:text-5xl font-semibold">
-            {{ $order->order_number }}
-        </h1>
+        <div class="hidden lg:flex items-center gap-4 relative">
+            @auth
+                <button 
+                    type="button"
+                    onclick="toggleProfileMenu()"
+                    class="w-11 h-11 rounded-full bg-white/55 backdrop-blur-md border border-black/10 flex items-center justify-center hover:bg-[#1b0d03] hover:text-white transition"
+                    title="Profile"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 7.5a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 20.25a7.5 7.5 0 0115 0" />
+                    </svg>
+                </button>
+
+                <div id="profileMenu" class="hidden absolute right-14 top-14 w-56 bg-white border border-[#eadfd3] shadow-xl shadow-black/10 rounded-2xl overflow-hidden">
+                    <div class="px-5 py-4 border-b border-[#eadfd3]">
+                        <p class="text-xs uppercase tracking-[0.2em] text-[#8b7462] mb-1">Signed in as</p>
+                        <p class="font-semibold text-[#1b0d03] truncate">{{ Auth::user()->name }}</p>
+                    </div>
+
+                    <a href="{{ url('my-orders') }}" class="block px-5 py-3 text-sm bg-[#fff2e5] text-[#7a4d2a] transition">
+                        My Orders
+                    </a>
+
+                    <form action="{{ url('logout') }}" method="post">
+                        @csrf
+                        <button class="w-full text-left px-5 py-3 text-sm text-red-600 hover:bg-red-50 transition">
+                            Logout
+                        </button>
+                    </form>
+                </div>
+            @else
+                <a 
+                    href="{{ url('login') }}"
+                    class="w-11 h-11 rounded-full bg-white/55 backdrop-blur-md border border-black/10 flex items-center justify-center hover:bg-[#1b0d03] hover:text-white transition"
+                    title="Login"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 7.5a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 20.25a7.5 7.5 0 0115 0" />
+                    </svg>
+                </a>
+            @endauth
+
+            <a 
+                href="{{ url('cart') }}"
+                class="w-11 h-11 rounded-full bg-[#1b0d03] text-white border border-black/10 flex items-center justify-center transition"
+                title="Cart"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 7.5h10.5l-.75 12h-9l-.75-12zM9 7.5a3 3 0 016 0M9.75 11.25h.01M14.25 11.25h.01" />
+                </svg>
+            </a>
+        </div>
+
+        <div class="lg:hidden flex items-center gap-3">
+            <a 
+                href="{{ url('cart') }}"
+                class="w-10 h-10 rounded-full bg-[#1b0d03] text-white border border-black/10 flex items-center justify-center"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 7.5h10.5l-.75 12h-9l-.75-12zM9 7.5a3 3 0 016 0M9.75 11.25h.01M14.25 11.25h.01" />
+                </svg>
+            </a>
+
+            <button 
+                type="button"
+                onclick="openMobileMenu()"
+                class="w-10 h-10 rounded-full bg-white/60 backdrop-blur-md border border-black/10 flex items-center justify-center"
+            >
+                <span class="text-2xl leading-none">☰</span>
+            </button>
+        </div>
+
     </div>
+</nav>
 
-    <div class="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8">
+<!-- MOBILE SIDE MENU -->
+<div id="mobileMenuOverlay" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/45" onclick="closeMobileMenu()"></div>
 
-        <div class="space-y-5">
-            <div class="bg-[#fbf8f4] border border-[#eadfd3] p-6">
-                <h2 class="text-2xl font-semibold mb-5">
-                    Products
-                </h2>
+    <div id="mobileDrawer" class="absolute top-0 left-0 h-full w-[82%] max-w-sm bg-[#fbf8f4] shadow-2xl transform -translate-x-full transition duration-300">
+        <div class="flex items-center justify-between px-7 py-6 border-b border-[#eadfd3]">
+            <h2 class="text-2xl font-semibold tracking-[0.12em] uppercase">Menu</h2>
+            <button onclick="closeMobileMenu()" class="w-10 h-10 flex items-center justify-center text-3xl">×</button>
+        </div>
 
-                <div class="space-y-5">
-                    @foreach($order->items as $item)
-                        <div class="grid grid-cols-[90px_1fr] sm:grid-cols-[120px_1fr] gap-5 border-b border-[#eadfd3] pb-5 last:border-b-0">
-                            <img 
-                                src="{{ asset('uploads/products/'.$item->product_image) }}" 
-                                class="w-full h-28 sm:h-36 object-cover bg-[#eee6dc]"
-                                alt="{{ $item->product_name }}"
-                            >
+        <div class="px-5 py-6 space-y-5 border-b border-[#eadfd3]">
+            <a href="{{ url('/') }}" class="block text-xl font-semibold tracking-[0.18em] uppercase">Home</a>
+            <a href="{{ url('collection') }}" class="block text-xl font-semibold tracking-[0.18em] uppercase">Shop</a>
+            <a href="{{ url('about') }}" class="block text-xl font-semibold tracking-[0.18em] uppercase">About</a>
+            <a href="{{ url('contact') }}" class="block text-xl font-semibold tracking-[0.18em] uppercase">Contact</a>
+            <a href="{{ url('cart') }}" class="block text-xl font-semibold tracking-[0.18em] uppercase">Cart</a>
+            <a href="{{ url('my-orders') }}" class="block text-xl font-semibold tracking-[0.18em] uppercase text-[#7a4d2a]">My Orders</a>
+        </div>
 
-                            <div>
-                                <h3 class="text-lg font-semibold">
-                                    {{ $item->product_name }}
+        <div class="px-5 py-6">
+            @auth
+                <div>
+                    <p class="text-xs uppercase tracking-[0.2em] text-[#8b7462]">Signed in as</p>
+                    <p class="mt-2 text-lg font-semibold text-[#1b0d03]">{{ Auth::user()->name }}</p>
+
+                    <a href="{{ url('my-orders') }}" class="block mt-4 text-sm text-[#7a4d2a]">
+                        My Orders
+                    </a>
+
+                    <form action="{{ url('logout') }}" method="post" class="mt-3">
+                        @csrf
+                        <button class="text-sm text-red-600">
+                            Logout
+                        </button>
+                    </form>
+                </div>
+            @else
+                <a href="{{ url('login') }}" class="flex items-center gap-5">
+                    <span class="w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 7.5a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 20.25a7.5 7.5 0 0115 0" />
+                        </svg>
+                    </span>
+                    <span class="text-base font-medium">Login Register</span>
+                </a>
+            @endauth
+        </div>
+    </div>
+</div>
+
+<main>
+
+    <!-- ORDER DETAILS HERO -->
+    <section class="relative px-4 sm:px-6 lg:px-14 pt-8 sm:pt-10 pb-10 overflow-hidden">
+        <div class="absolute -top-24 -right-24 w-80 sm:w-96 h-80 sm:h-96 bg-[#ead2ba]/70 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 w-72 h-72 bg-white/80 rounded-full blur-3xl"></div>
+
+        <div class="relative border-b border-[#eadfd3] pb-10">
+
+            <a href="{{ url('my-orders') }}"
+               class="inline-flex items-center gap-2 text-sm text-[#8b7462] hover:text-[#1b0d03] transition mb-8">
+                <span class="text-lg">←</span>
+                Back to Orders
+            </a>
+
+            <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
+                <div>
+                    <p class="text-xs uppercase tracking-[0.35em] text-[#8b7462] mb-4">
+                        Order Details
+                    </p>
+
+                    <h1 class="text-4xl sm:text-6xl lg:text-7xl font-semibold leading-tight tracking-tight break-words">
+                        {{ $order->order_number }}
+                    </h1>
+
+                    <p class="mt-5 max-w-2xl text-sm sm:text-base leading-7 text-[#2f251e]/70">
+                        Review your purchased products, payment details, shipping address, and current order status.
+                    </p>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3 sm:items-center">
+                    <span class="inline-flex items-center justify-center gap-2 px-5 py-3 text-xs uppercase tracking-[0.14em] font-semibold w-fit
+                        @if($order->order_status == 'delivered') bg-green-100 text-green-700
+                        @elseif($order->order_status == 'cancelled') bg-red-100 text-red-700
+                        @elseif($order->order_status == 'shipped') bg-blue-100 text-blue-700
+                        @elseif($order->order_status == 'confirmed') bg-purple-100 text-purple-700
+                        @elseif($order->order_status == 'pending') bg-yellow-100 text-yellow-700
+                        @else bg-[#fff2e5] text-[#7a4d2a]
+                        @endif">
+
+                        <span class="w-2 h-2 rounded-full
+                            @if($order->order_status == 'delivered') bg-green-600
+                            @elseif($order->order_status == 'cancelled') bg-red-600
+                            @elseif($order->order_status == 'shipped') bg-blue-600
+                            @elseif($order->order_status == 'confirmed') bg-purple-600
+                            @elseif($order->order_status == 'pending') bg-yellow-600
+                            @else bg-[#7a4d2a]
+                            @endif">
+                        </span>
+
+                        {{ ucfirst($order->order_status) }}
+                    </span>
+
+                    <a href="{{ url('collection') }}"
+                       class="inline-flex items-center justify-center bg-[#1b0d03] text-white px-7 py-4 uppercase tracking-[0.16em] text-xs font-semibold hover:bg-black transition w-fit">
+                        Shop More
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ORDER INFO CARDS -->
+    <section class="px-4 sm:px-6 lg:px-14 pb-8">
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5">
+
+            <div class="bg-[#fbf8f4] border border-[#eadfd3] p-5 sm:p-6">
+                <p class="text-xs uppercase tracking-[0.25em] text-[#8b7462]">Total Amount</p>
+                <h3 class="mt-3 text-2xl sm:text-3xl font-semibold">₹{{ $order->total_amount }}</h3>
+            </div>
+
+            <div class="bg-[#1b0d03] text-white p-5 sm:p-6">
+                <p class="text-xs uppercase tracking-[0.25em] text-[#e8c7ad]">Payment</p>
+                <h3 class="mt-3 text-xl sm:text-2xl font-semibold break-words">{{ ucfirst($order->payment_method) }}</h3>
+            </div>
+
+            <div class="bg-[#fbf8f4] border border-[#eadfd3] p-5 sm:p-6">
+                <p class="text-xs uppercase tracking-[0.25em] text-[#8b7462]">Order Date</p>
+                <h3 class="mt-3 text-xl sm:text-2xl font-semibold">{{ $order->created_at->format('d M Y') }}</h3>
+                <p class="mt-1 text-sm text-[#8b7462]">{{ $order->created_at->format('h:i A') }}</p>
+            </div>
+
+            <div class="bg-[#fbf8f4] border border-[#eadfd3] p-5 sm:p-6">
+                <p class="text-xs uppercase tracking-[0.25em] text-[#8b7462]">Total Items</p>
+                <h3 class="mt-3 text-2xl sm:text-3xl font-semibold">{{ $order->items->count() }}</h3>
+            </div>
+
+        </div>
+    </section>
+    <!-- ORDER TRACKING -->
+    <section class="px-4 sm:px-6 lg:px-14 pb-8">
+        <div class="bg-[#fbf8f4] border border-[#eadfd3] p-5 sm:p-7 lg:p-8">
+
+            <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
+                <div>
+                    <p class="text-xs uppercase tracking-[0.35em] text-[#8b7462] mb-3">
+                        Order Tracking
+                    </p>
+
+                    <h2 class="text-3xl sm:text-4xl font-semibold">
+                        Track Your Order
+                    </h2>
+
+                    <p class="mt-3 text-sm text-[#2f251e]/65 leading-6">
+                        Follow your order progress from placement to final delivery.
+                    </p>
+                </div>
+
+                <span class="inline-flex w-fit items-center gap-2 px-4 py-2 text-xs uppercase tracking-[0.16em] font-semibold
+                    @if($order->order_status == 'delivered') bg-green-100 text-green-700
+                    @elseif($order->order_status == 'cancelled') bg-red-100 text-red-700
+                    @elseif($order->order_status == 'shipped') bg-blue-100 text-blue-700
+                    @elseif($order->order_status == 'confirmed') bg-purple-100 text-purple-700
+                    @else bg-[#fff2e5] text-[#7a4d2a]
+                    @endif">
+
+                    <span class="w-2 h-2 rounded-full
+                        @if($order->order_status == 'delivered') bg-green-600
+                        @elseif($order->order_status == 'cancelled') bg-red-600
+                        @elseif($order->order_status == 'shipped') bg-blue-600
+                        @elseif($order->order_status == 'confirmed') bg-purple-600
+                        @else bg-[#7a4d2a]
+                        @endif">
+                    </span>
+
+                    {{ ucfirst($order->order_status) }}
+                </span>
+            </div>
+
+            @if($order->order_status == 'cancelled')
+
+                <div class="bg-red-50 border border-red-100 text-red-700 p-5">
+                    <h3 class="font-semibold">
+                        Order Cancelled
+                    </h3>
+
+                    <p class="mt-2 text-sm leading-6">
+                        This order has been cancelled. Contact support if you need more information.
+                    </p>
+                </div>
+
+            @else
+
+                <!-- DESKTOP TRACKING -->
+                <div class="hidden md:block">
+                    <div class="relative grid grid-cols-4 gap-4">
+
+                        <div class="absolute top-6 left-[12.5%] right-[12.5%] h-[2px] bg-[#eadfd3]"></div>
+
+                        <div 
+                            class="absolute top-6 left-[12.5%] h-[2px] bg-[#1b0d03] transition-all"
+                            style="width:
+                                @if($currentIndex == 0) 0%
+                                @elseif($currentIndex == 1) 25%
+                                @elseif($currentIndex == 2) 50%
+                                @else 75%
+                                @endif;"
+                        ></div>
+
+                        @foreach($statuses as $key => $step)
+                            @php
+                                $stepIndex = array_search($key, $statusKeys);
+                                $isActive = $stepIndex <= $currentIndex;
+                                $isCurrent = $stepIndex == $currentIndex;
+                            @endphp
+
+                            <div class="relative text-center">
+                                <div class="relative z-10 mx-auto w-12 h-12 rounded-full flex items-center justify-center border-2 font-semibold
+                                    {{ $isActive ? 'bg-[#1b0d03] border-[#1b0d03] text-white' : 'bg-[#fbf8f4] border-[#eadfd3] text-[#8b7462]' }}">
+                                    @if($isActive)
+                                        ✓
+                                    @else
+                                        {{ $stepIndex + 1 }}
+                                    @endif
+                                </div>
+
+                                <h3 class="mt-4 font-semibold {{ $isCurrent ? 'text-[#1b0d03]' : 'text-[#2f251e]' }}">
+                                    {{ $step['title'] }}
                                 </h3>
 
-                                <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-                                    <p>
-                                        <span class="text-[#8b7462]">Price:</span>
-                                        ₹{{ $item->price }}
-                                    </p>
+                                <p class="mt-2 text-sm leading-6 text-[#2f251e]/60">
+                                    {{ $step['desc'] }}
+                                </p>
 
-                                    <p>
-                                        <span class="text-[#8b7462]">Qty:</span>
-                                        {{ $item->quantity }}
-                                    </p>
+                                @if($isCurrent)
+                                    <span class="mt-3 inline-flex px-3 py-1 bg-[#fff2e5] text-[#7a4d2a] text-xs uppercase tracking-[0.14em]">
+                                        Current
+                                    </span>
+                                @endif
+                            </div>
+                        @endforeach
 
-                                    <p class="font-semibold">
-                                        <span class="text-[#8b7462]">Subtotal:</span>
-                                        ₹{{ $item->subtotal }}
-                                    </p>
+                    </div>
+                </div>
+
+                <!-- MOBILE TRACKING -->
+                <div class="md:hidden space-y-5">
+                    @foreach($statuses as $key => $step)
+                        @php
+                            $stepIndex = array_search($key, $statusKeys);
+                            $isActive = $stepIndex <= $currentIndex;
+                            $isCurrent = $stepIndex == $currentIndex;
+                        @endphp
+
+                        <div class="flex gap-4">
+                            <div class="flex flex-col items-center">
+                                <div class="w-11 h-11 rounded-full flex items-center justify-center border-2 font-semibold
+                                    {{ $isActive ? 'bg-[#1b0d03] border-[#1b0d03] text-white' : 'bg-[#fbf8f4] border-[#eadfd3] text-[#8b7462]' }}">
+                                    @if($isActive)
+                                        ✓
+                                    @else
+                                        {{ $stepIndex + 1 }}
+                                    @endif
                                 </div>
+
+                                @if(!$loop->last)
+                                    <div class="w-[2px] h-12 {{ $isActive ? 'bg-[#1b0d03]' : 'bg-[#eadfd3]' }}"></div>
+                                @endif
+                            </div>
+
+                            <div class="pb-5">
+                                <h3 class="font-semibold {{ $isCurrent ? 'text-[#1b0d03]' : 'text-[#2f251e]' }}">
+                                    {{ $step['title'] }}
+                                </h3>
+
+                                <p class="mt-1 text-sm leading-6 text-[#2f251e]/60">
+                                    {{ $step['desc'] }}
+                                </p>
+
+                                @if($isCurrent)
+                                    <span class="mt-2 inline-flex px-3 py-1 bg-[#fff2e5] text-[#7a4d2a] text-xs uppercase tracking-[0.14em]">
+                                        Current
+                                    </span>
+                                @endif
                             </div>
                         </div>
                     @endforeach
                 </div>
+
+            @endif
+
+        </div>
+    </section>
+
+    <!-- MAIN CONTENT -->
+    <section class="px-4 sm:px-6 lg:px-14 pb-16 lg:pb-24">
+
+        <div class="grid grid-cols-1 xl:grid-cols-[1fr_390px] gap-8 xl:gap-10 items-start">
+
+            <!-- LEFT CONTENT -->
+            <div class="space-y-6">
+
+                <!-- PRODUCTS -->
+                <div class="bg-[#fbf8f4] border border-[#eadfd3] p-5 sm:p-6 lg:p-7">
+                    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-7">
+                        <div>
+                            <p class="text-xs uppercase tracking-[0.28em] text-[#8b7462] mb-3">
+                                Purchased Items
+                            </p>
+
+                            <h2 class="text-3xl sm:text-4xl font-semibold">
+                                Products
+                            </h2>
+                        </div>
+
+                        <p class="text-sm text-[#2f251e]/60">
+                            {{ $order->items->count() }} item(s) in this order
+                        </p>
+                    </div>
+
+                    <div class="hidden md:grid grid-cols-[1.4fr_0.45fr_0.45fr_0.55fr] gap-5 border-y border-[#eadfd3] px-1 py-4 mb-5 text-xs uppercase tracking-[0.22em] text-[#8b7462]">
+                        <p>Product</p>
+                        <p>Price</p>
+                        <p>Qty</p>
+                        <p class="text-right">Subtotal</p>
+                    </div>
+
+                    <div class="space-y-5">
+                        @foreach($order->items as $item)
+                            <div class="group border border-[#eadfd3] bg-[#fffdfb] p-4 sm:p-5 hover:shadow-xl hover:shadow-black/5 transition">
+
+                                <div class="grid grid-cols-1 md:grid-cols-[1.4fr_0.45fr_0.45fr_0.55fr] gap-5 md:items-center">
+
+                                    <!-- PRODUCT -->
+                                    <div class="grid grid-cols-[92px_1fr] sm:grid-cols-[124px_1fr] gap-4 sm:gap-5 items-start">
+                                        <div class="overflow-hidden bg-[#eee6dc]">
+                                            <img 
+                                                src="{{ asset('uploads/products/'.$item->product_image) }}" 
+                                                class="w-full h-32 sm:h-40 object-cover object-center group-hover:scale-[1.04] transition duration-700"
+                                                alt="{{ $item->product_name }}"
+                                            >
+                                        </div>
+
+                                        <div class="min-w-0">
+                                            <p class="text-[10px] uppercase tracking-[0.24em] text-[#8b7462] mb-2">
+                                                Viora Select
+                                            </p>
+
+                                            <h3 class="text-lg sm:text-xl font-semibold leading-snug">
+                                                {{ $item->product_name }}
+                                            </h3>
+
+                                            <p class="mt-2 text-sm leading-6 text-[#2f251e]/60">
+                                                Premium fashion piece selected from your Viora order.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <!-- PRICE -->
+                                    <div>
+                                        <p class="md:hidden text-xs uppercase tracking-[0.2em] text-[#8b7462] mb-2">
+                                            Price
+                                        </p>
+
+                                        <p class="text-base font-semibold">
+                                            ₹{{ $item->price }}
+                                        </p>
+                                    </div>
+
+                                    <!-- QTY -->
+                                    <div>
+                                        <p class="md:hidden text-xs uppercase tracking-[0.2em] text-[#8b7462] mb-2">
+                                            Quantity
+                                        </p>
+
+                                        <span class="inline-flex items-center justify-center min-w-11 h-11 bg-[#f6f1ea] border border-[#eadfd3] text-sm font-semibold">
+                                            {{ $item->quantity }}
+                                        </span>
+                                    </div>
+
+                                    <!-- SUBTOTAL -->
+                                    <div class="md:text-right">
+                                        <p class="md:hidden text-xs uppercase tracking-[0.2em] text-[#8b7462] mb-2">
+                                            Subtotal
+                                        </p>
+
+                                        <p class="text-lg font-semibold text-[#1b0d03]">
+                                            ₹{{ $item->subtotal }}
+                                        </p>
+                                    </div>
+
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <!-- SHIPPING ADDRESS MOBILE/TABLET -->
+                <div class="xl:hidden bg-[#fbf8f4] border border-[#eadfd3] p-5 sm:p-6">
+                    <p class="text-xs uppercase tracking-[0.28em] text-[#8b7462] mb-3">
+                        Delivery Details
+                    </p>
+
+                    <h2 class="text-3xl font-semibold mb-5">
+                        Shipping Address
+                    </h2>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                        <div class="bg-white border border-[#eadfd3] p-4">
+                            <p class="text-xs uppercase tracking-[0.18em] text-[#8b7462] mb-2">Customer</p>
+                            <p class="font-semibold">{{ $order->full_name }}</p>
+                        </div>
+
+                        <div class="bg-white border border-[#eadfd3] p-4">
+                            <p class="text-xs uppercase tracking-[0.18em] text-[#8b7462] mb-2">Phone</p>
+                            <p class="font-semibold">{{ $order->phone }}</p>
+                        </div>
+
+                        <div class="bg-white border border-[#eadfd3] p-4 sm:col-span-2">
+                            <p class="text-xs uppercase tracking-[0.18em] text-[#8b7462] mb-2">Address</p>
+                            <p class="leading-7 text-[#2f251e]/70">
+                                {{ $order->address }}, {{ $order->city }}, {{ $order->state }} - {{ $order->pincode }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
             </div>
+
+            <!-- RIGHT SUMMARY -->
+            <aside class="bg-[#1b0d03] text-white p-6 sm:p-8 lg:p-9 h-fit xl:sticky xl:top-8">
+
+                <p class="text-xs uppercase tracking-[0.35em] text-[#e8c7ad] mb-4">
+                    Summary
+                </p>
+
+                <h2 class="text-3xl sm:text-4xl font-semibold leading-tight">
+                    Order Info
+                </h2>
+
+                <div class="mt-8 space-y-5 border-b border-white/10 pb-7">
+
+                    <div class="flex items-center justify-between gap-4">
+                        <span class="text-white/60">Order Total</span>
+                        <span class="font-semibold">₹{{ $order->total_amount }}</span>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-4">
+                        <span class="text-white/60">Payment</span>
+                        <span class="font-semibold text-right">{{ ucfirst($order->payment_method) }}</span>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-4">
+                        <span class="text-white/60">Items</span>
+                        <span class="font-semibold">{{ $order->items->count() }}</span>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-4">
+                        <span class="text-white/60">Date</span>
+                        <span class="font-semibold">{{ $order->created_at->format('d M Y') }}</span>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-4">
+                        <span class="text-white/60">Status</span>
+
+                        <span class="font-semibold
+                            @if($order->order_status == 'delivered') text-green-300
+                            @elseif($order->order_status == 'cancelled') text-red-300
+                            @elseif($order->order_status == 'shipped') text-blue-300
+                            @elseif($order->order_status == 'pending') text-yellow-300
+                            @else text-[#e8c7ad]
+                            @endif">
+                            {{ ucfirst($order->order_status) }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- SHIPPING ADDRESS DESKTOP -->
+                <div class="hidden xl:block mt-7 border-b border-white/10 pb-7">
+                    <h3 class="font-semibold text-xl mb-4">
+                        Shipping Address
+                    </h3>
+
+                    <p class="text-sm leading-7 text-white/70">
+                        <span class="text-white font-semibold">{{ $order->full_name }}</span> <br>
+                        {{ $order->phone }} <br>
+                        {{ $order->address }}, {{ $order->city }}, {{ $order->state }} - {{ $order->pincode }}
+                    </p>
+                </div>
+
+                <div class="mt-7 space-y-5">
+                    <div class="flex items-start gap-4">
+                        <span class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0">✓</span>
+                        <div>
+                            <h4 class="font-semibold">Order Confirmed</h4>
+                            <p class="mt-1 text-sm text-white/60 leading-6">
+                                Your order details are safely saved with Viora.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-4">
+                        <span class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0">⛟</span>
+                        <div>
+                            <h4 class="font-semibold">Delivery Support</h4>
+                            <p class="mt-1 text-sm text-white/60 leading-6">
+                                Contact support for delivery or return related help.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <a href="{{ url('my-orders') }}"
+                   class="mt-8 w-full inline-flex justify-center bg-[#e8c7ad] text-[#1b0d03] px-6 py-4 uppercase tracking-[0.16em] text-xs font-semibold hover:bg-white transition">
+                    Back To Orders
+                </a>
+
+                <a href="{{ url('contact') }}"
+                   class="mt-4 w-full inline-flex items-center justify-center border border-white/20 text-white px-6 py-4 uppercase tracking-[0.16em] text-xs font-semibold hover:bg-white hover:text-[#1b0d03] transition">
+                    Contact Support
+                </a>
+
+            </aside>
+
         </div>
 
-        <aside class="bg-[#1b0d03] text-white p-6 h-fit lg:sticky lg:top-8">
-            <p class="text-xs uppercase tracking-[0.35em] text-[#e8c7ad] mb-4">
-                Summary
-            </p>
+    </section>
 
-            <h2 class="text-3xl font-semibold mb-7">
-                Order Info
-            </h2>
+    <!-- ORDER CTA -->
+    <section class="relative bg-[#1b0d03] text-white px-4 sm:px-6 lg:px-14 py-16 sm:py-20 lg:py-24 overflow-hidden">
+        <div class="absolute inset-0 opacity-25">
+            <img 
+                src="https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1600&q=80"
+                class="w-full h-full object-cover object-center"
+                alt="Viora Order CTA"
+            >
+        </div>
 
-            <div class="space-y-4 border-b border-white/10 pb-6">
-                <div class="flex justify-between gap-4">
-                    <span class="text-white/60">Total</span>
-                    <span>₹{{ $order->total_amount }}</span>
-                </div>
+        <div class="absolute inset-0 bg-gradient-to-r from-[#1b0d03] via-[#1b0d03]/85 to-[#1b0d03]/40"></div>
 
-                <div class="flex justify-between gap-4">
-                    <span class="text-white/60">Payment</span>
-                    <span>{{ $order->payment_method }}</span>
-                </div>
+        <div class="relative grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-10 lg:gap-16 items-center">
+            <div>
+                <p class="text-xs uppercase tracking-[0.35em] text-[#e8c7ad] mb-5">
+                    Continue Exploring
+                </p>
 
-                <div class="flex justify-between gap-4">
-                    <span class="text-white/60">Status</span>
-                    <span>{{ ucfirst($order->order_status) }}</span>
-                </div>
+                <h2 class="text-4xl sm:text-5xl lg:text-6xl font-semibold leading-tight max-w-4xl">
+                    Discover More Styles Made For You
+                </h2>
 
-                <div class="flex justify-between gap-4">
-                    <span class="text-white/60">Date</span>
-                    <span>{{ $order->created_at->format('d M Y') }}</span>
+                <p class="mt-6 text-sm sm:text-base leading-7 text-white/70 max-w-2xl">
+                    Keep building your wardrobe with refined Viora pieces designed for comfort, confidence, and modern everyday fashion.
+                </p>
+
+                <div class="mt-9 flex flex-col sm:flex-row gap-4">
+                    <a href="{{ url('collection') }}"
+                       class="inline-flex items-center justify-center bg-[#e8c7ad] text-[#1b0d03] px-8 py-4 uppercase tracking-[0.14em] text-xs font-semibold hover:bg-white transition">
+                        Explore Collection
+                    </a>
+
+                    <a href="{{ url('my-orders') }}"
+                       class="inline-flex items-center justify-center border border-white/30 text-white px-8 py-4 uppercase tracking-[0.14em] text-xs font-semibold hover:bg-white hover:text-[#1b0d03] transition">
+                        View Orders
+                    </a>
                 </div>
             </div>
 
-            <div class="mt-6">
-                <h3 class="font-semibold mb-3">Shipping Address</h3>
-                <p class="text-sm leading-7 text-white/70">
-                    {{ $order->full_name }} <br>
-                    {{ $order->phone }} <br>
-                    {{ $order->address }}, {{ $order->city }}, {{ $order->state }} - {{ $order->pincode }}
+            <div class="bg-white/10 backdrop-blur-md border border-white/15 p-6 sm:p-8 lg:p-10">
+                <p class="text-xs uppercase tracking-[0.3em] text-[#e8c7ad] mb-6">
+                    Viora Service
+                </p>
+
+                <div class="space-y-6">
+                    <div class="flex items-start gap-4">
+                        <span class="w-11 h-11 rounded-full bg-[#e8c7ad] text-[#1b0d03] flex items-center justify-center shrink-0 font-semibold">
+                            01
+                        </span>
+                        <div>
+                            <h4 class="font-semibold text-lg">Premium Products</h4>
+                            <p class="mt-1 text-sm leading-6 text-white/65">
+                                Fashion pieces selected for modern and effortless styling.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-4">
+                        <span class="w-11 h-11 rounded-full bg-[#e8c7ad] text-[#1b0d03] flex items-center justify-center shrink-0 font-semibold">
+                            02
+                        </span>
+                        <div>
+                            <h4 class="font-semibold text-lg">Clear Order Details</h4>
+                            <p class="mt-1 text-sm leading-6 text-white/65">
+                                Product, payment, and delivery information in one place.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-4">
+                        <span class="w-11 h-11 rounded-full bg-[#e8c7ad] text-[#1b0d03] flex items-center justify-center shrink-0 font-semibold">
+                            03
+                        </span>
+                        <div>
+                            <h4 class="font-semibold text-lg">Helpful Support</h4>
+                            <p class="mt-1 text-sm leading-6 text-white/65">
+                                Assistance for order questions, delivery updates, and returns.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="bg-[#14100e] text-white">
+    <div class="px-4 sm:px-6 lg:px-14 py-12 sm:py-14">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+
+            <div>
+                <h4 class="text-3xl font-semibold tracking-[0.15em] uppercase">Viora</h4>
+                <p class="mt-4 text-sm text-white/60 leading-6">
+                    Modern fashion for men, women and kids — premium, refined and designed for effortless everyday style.
                 </p>
             </div>
-        </aside>
 
+            <div>
+                <h5 class="font-semibold uppercase tracking-[0.15em] text-sm">Shop</h5>
+                <div class="mt-5 space-y-3 text-sm text-white/60">
+                    <a href="{{ url('collection') }}" class="block hover:text-white">All Collection</a>
+                    <a href="{{ url('cart') }}" class="block hover:text-white">Cart</a>
+                    <a href="{{ url('my-orders') }}" class="block hover:text-white">My Orders</a>
+                </div>
+            </div>
+
+            <div>
+                <h5 class="font-semibold uppercase tracking-[0.15em] text-sm">Support</h5>
+                <div class="mt-5 space-y-3 text-sm text-white/60">
+                    <a href="{{ url('contact') }}" class="block hover:text-white">Contact Us</a>
+                    <a href="#" class="block hover:text-white">Shipping Info</a>
+                    <a href="#" class="block hover:text-white">Returns</a>
+                    <a href="#" class="block hover:text-white">Size Guide</a>
+                </div>
+            </div>
+
+            <div>
+                <h5 class="font-semibold uppercase tracking-[0.15em] text-sm">Company</h5>
+                <div class="mt-5 space-y-3 text-sm text-white/60">
+                    <a href="{{ url('about') }}" class="block hover:text-white">About</a>
+                    <a href="#" class="block hover:text-white">Careers</a>
+                    <a href="#" class="block hover:text-white">Blog</a>
+                    <a href="#" class="block hover:text-white">Privacy Policy</a>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="border-t border-white/10 mt-10 sm:mt-12 pt-6 flex flex-col sm:flex-row justify-between gap-4 text-xs text-white/40">
+            <p>© 2026 Viora. All rights reserved.</p>
+            <div class="flex flex-wrap gap-5">
+                <a href="#" class="hover:text-white">Terms</a>
+                <a href="#" class="hover:text-white">Privacy Policy</a>
+                <a href="#" class="hover:text-white">Cookie Policy</a>
+            </div>
+        </div>
     </div>
+</footer>
 
-</section>
+<script>
+    function toggleProfileMenu() {
+        const menu = document.getElementById('profileMenu');
+        if (menu) {
+            menu.classList.toggle('hidden');
+        }
+    }
+
+    function openMobileMenu() {
+        const overlay = document.getElementById('mobileMenuOverlay');
+        const drawer = document.getElementById('mobileDrawer');
+
+        overlay.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+
+        setTimeout(() => {
+            drawer.classList.remove('-translate-x-full');
+        }, 10);
+    }
+
+    function closeMobileMenu() {
+        const overlay = document.getElementById('mobileMenuOverlay');
+        const drawer = document.getElementById('mobileDrawer');
+
+        drawer.classList.add('-translate-x-full');
+
+        setTimeout(() => {
+            overlay.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }, 300);
+    }
+
+    document.addEventListener('click', function(event) {
+        const profileMenu = document.getElementById('profileMenu');
+
+        if (
+            profileMenu &&
+            !event.target.closest('#profileMenu') &&
+            !event.target.closest('button[onclick="toggleProfileMenu()"]')
+        ) {
+            profileMenu.classList.add('hidden');
+        }
+    });
+</script>
 
 </body>
 </html>

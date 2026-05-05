@@ -217,7 +217,7 @@ class AdminController extends Controller
     {
         $orders = Order::with('user')
             ->latest()
-            ->paginate(10);
+            ->paginate(6);
 
         return view('admin-orders', [
             'orders' => $orders
@@ -237,10 +237,11 @@ class AdminController extends Controller
     function updateOrderStatus(Request $req, $id)
     {
         $req->validate([
-            'order_status' => 'required|in:pending,confirmed,shipped,delivered,cancelled,placed',
+            'order_status' => 'required|in:pending,confirmed,shipped,delivered,cancelled',
         ]);
 
         $order = Order::findOrFail($id);
+
         $order->order_status = $req->order_status;
         $order->save();
 
