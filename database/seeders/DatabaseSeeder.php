@@ -15,7 +15,7 @@ class DatabaseSeeder extends Seeder
         // Admin user
         $adminData = [
             'name' => 'Khan Sadiq',
-            'email' => 'viora@gmail.com',
+            'email' => 'viora123@gmail.com',
             'password' => Hash::make('viora@123'),
         ];
 
