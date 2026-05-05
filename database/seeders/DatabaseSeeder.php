@@ -15,12 +15,12 @@ class DatabaseSeeder extends Seeder
         // Admin user
         $adminData = [
             'name' => 'Khan Sadiq',
-            'email' => 'khansadik56@gmail.com',
-            'password' => Hash::make('1234567890'),
+            'email' => 'viora@gmail.com',
+            'password' => Hash::make('viora@123'),
         ];
 
         if (Schema::hasColumn('users', 'phone')) {
-            $adminData['phone'] = '9898765432';
+            $adminData['phone'] = '9898765431';
         }
 
         if (Schema::hasColumn('users', 'is_admin')) {
@@ -32,7 +32,7 @@ class DatabaseSeeder extends Seeder
         }
 
         User::updateOrCreate(
-            ['email' => 'khansadik56@gmail.com'],
+            ['email' => 'viora123@gmail.com'],
             $adminData
         );
 
