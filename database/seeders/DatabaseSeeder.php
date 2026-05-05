@@ -13,11 +13,28 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Admin user
+        $adminEmail = 'viora123@gmail.com';
+
         $adminData = [
             'name' => 'Khan Sadiq',
-            'email' => 'viora123@gmail.com',
+            'email' => $adminEmail,
             'password' => Hash::make('viora@123'),
+            'created_at' => now(),
+            'updated_at' => now(),
         ];
+
+        if (Schema::hasColumn('users', 'phone')) {
+            $adminData['phone'] = '9898765431';
+        }
+
+        if (Schema::hasColumn('users', 'role')) {
+            $adminData['role'] = 'admin';
+        }
+
+        DB::table('users')->updateOrInsert(
+            ['email' => $adminEmail],
+            $adminData
+        );
 
         if (Schema::hasColumn('users', 'phone')) {
             $adminData['phone'] = '9898765431';
