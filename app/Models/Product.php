@@ -6,7 +6,24 @@ use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
 {
-    public function getPriceAttribute($value){
-    return '₹' . $value;
+    protected $fillable = [
+        'category_id',
+        'name',
+        'image',
+        'short_description',
+        'description',
+        'price',
+        'stock',
+        'status',
+    ];
+
+    public function getPriceAttribute($value)
+    {
+        return '₹' . $value;
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Categorie::class, 'category_id');
     }
 }
