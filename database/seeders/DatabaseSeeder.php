@@ -13,12 +13,12 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Admin user
-        $adminEmail = 'viora123@gmail.com';
+        $adminEmail = 'viora1234@gmail.com';
 
         $adminData = [
             'name' => 'Khan Sadiq',
             'email' => $adminEmail,
-            'password' => Hash::make('viora@123'),
+            'password' => Hash::make('viora@1234'),
             'created_at' => now(),
             'updated_at' => now(),
         ];
@@ -33,23 +33,6 @@ class DatabaseSeeder extends Seeder
 
         DB::table('users')->updateOrInsert(
             ['email' => $adminEmail],
-            $adminData
-        );
-
-        if (Schema::hasColumn('users', 'phone')) {
-            $adminData['phone'] = '9898765431';
-        }
-
-        if (Schema::hasColumn('users', 'is_admin')) {
-            $adminData['is_admin'] = 1;
-        }
-
-        if (Schema::hasColumn('users', 'role')) {
-            $adminData['role'] = 'admin';
-        }
-
-        User::updateOrCreate(
-            ['email' => 'viora123@gmail.com'],
             $adminData
         );
 
