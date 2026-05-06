@@ -1,9 +1,20 @@
-<!DOCTYPE html>
-<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Viora | Fashion Store</title>
+    <link rel="icon" type="image/png" href="{{ asset('uploads/product/logo.png') }}?v=2">
+
+    <meta property="og:title" content="Viora | Fashion Store">
+    <meta property="og:description" content="Explore premium fashion collections at Viora.">
+    <meta property="og:image" content="{{ asset('uploads/product/logo-2.png') }}">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:type" content="website">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Viora | Fashion Store">
+    <meta name="twitter:description" content="Explore premium fashion collections at Viora.">
+    <meta name="twitter:image" content="{{ asset('uploads/product/logo-2.png') }}">
+
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
