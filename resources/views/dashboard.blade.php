@@ -408,10 +408,25 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-7">
 
         @forelse($categories as $cat)
-            <a href="{{ url('category/'.$cat->id) }}" class="group relative h-72 sm:h-96 overflow-hidden bg-[#1b0d03] shadow-sm">
+
+            @php
+                $categoryName = strtolower(trim($cat->name));
+
+                if ($categoryName == 'men') {
+                    $categoryImage = 'https://cdn.shopify.com/s/files/1/0598/1070/9672/files/vjv-now-1_480x480.jpg?v=1718277598';
+                } elseif ($categoryName == 'women') {
+                    $categoryImage = 'https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=900&q=80';
+                } elseif ($categoryName == 'kids') {
+                    $categoryImage = 'https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?auto=format&fit=crop&w=900&q=80';
+                } else {
+                    $categoryImage = 'https://cdn.shopify.com/s/files/1/0598/1070/9672/files/vjv-now-1_480x480.jpg?v=1718277598';
+                }
+            @endphp
+
+            <a href="{{ url('/collection') }}" class="group relative h-72 sm:h-96 overflow-hidden bg-[#1b0d03] shadow-sm">
 
                 <img 
-                    src="https://cdn.shopify.com/s/files/1/0598/1070/9672/files/vjv-now-1_480x480.jpg?v=1718277598"
+                    src="{{ $categoryImage }}"
                     class="absolute inset-0 w-full h-full object-cover opacity-75 group-hover:scale-105 transition duration-700"
                     alt="{{ $cat->name }}"
                 >
@@ -432,6 +447,7 @@
                     </p>
                 </div>
             </a>
+
         @empty
             <div class="col-span-full bg-white rounded-2xl p-10 text-center">
                 <p class="text-gray-500">No categories available right now.</p>
